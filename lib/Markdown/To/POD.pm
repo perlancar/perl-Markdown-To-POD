@@ -1,5 +1,10 @@
-package Text::Markdown;
-require 5.008_000;
+package Markdown::To::POD;
+
+# DATE
+# VERSION
+# ABSTRACT: Convert Markdown syntax to POD
+
+use 5.010;
 use strict;
 use warnings;
 use re 'eval';
@@ -9,37 +14,22 @@ use Encode      qw();
 use Carp        qw(croak);
 use base        'Exporter';
 
-our $VERSION   = '1.000031'; # 1.0.31
-$VERSION = eval $VERSION;
 our @EXPORT_OK = qw(markdown);
-
-=head1 NAME
-
-Text::Markdown - Convert Markdown syntax to (X)HTML
 
 =head1 SYNOPSIS
 
-    use Text::Markdown 'markdown';
-    my $html = markdown($text);
-
-    use Text::Markdown 'markdown';
-    my $html = markdown( $text, {
-        empty_element_suffix => '>',
-        tab_width => 2,
-    } );
-
-    use Text::Markdown;
-    my $m = Text::Markdown->new;
-    my $html = $m->markdown($text);
-
-    use Text::Markdown;
-    my $m = Text::MultiMarkdown->new(
-        empty_element_suffix => '>',
-        tab_width => 2,
-    );
-    my $html = $m->markdown( $text );
+    use Markdown::To::POD 'markdown';
+    my $pod = markdown($text);
 
 =head1 DESCRIPTION
+
+B<Markdown::To::POD notes>: Markdown::To::POD is a markdown-to-POD converter.
+Currently it's implemented as a quick-and-dirty hack of forking
+L<Text::Markdown> 1.000031 then modifying just enough to produce POD instead of
+HTML. I hacked it because I want an alternative to L<Markdown::Pod> 0.005 which
+is too startup-heavy and has a couple of annoying bugs, like converting
+C<an_identifier and another_identifier> to C<< anI<identifier and
+another>identifier >>. The rest of the documentation is Text::Markdown's.
 
 Markdown is a text-to-HTML filter; it translates an easy-to-read /
 easy-to-write structured text format into HTML. Markdown's text format
@@ -523,9 +513,12 @@ sub _RunBlockGamut {
 
     # Do Horizontal Rules:
     my $less_than_tab = $self->{tab_width} - 1;
-    $text =~ s{^[ ]{0,$less_than_tab}(\*[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
-    $text =~ s{^[ ]{0,$less_than_tab}(-[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
-    $text =~ s{^[ ]{0,$less_than_tab}(_[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
+    #$text =~ s{^[ ]{0,$less_than_tab}(\*[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
+    #$text =~ s{^[ ]{0,$less_than_tab}(-[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
+    #$text =~ s{^[ ]{0,$less_than_tab}(_[ ]?){3,}[ \t]*$}{\n<hr$self->{empty_element_suffix}\n}gmx;
+    $text =~ s{^[ ]{0,$less_than_tab}(\*[ ]?){3,}[ \t]*$}{"\n" . ("=" x 72) . "\n\n"}egmx;
+    $text =~ s{^[ ]{0,$less_than_tab}(-[ ]?){3,}[ \t]*$}{"\n" . ("=" x 72) . "\n\n"}egmx;
+    $text =~ s{^[ ]{0,$less_than_tab}(_[ ]?){3,}[ \t]*$}{"\n" . ("=" x 72) . "\n\n"}egmx;
 
     $text = $self->_DoLists($text);
 
@@ -758,7 +751,8 @@ sub _GenerateAnchor {
         $result .=  qq{ title="$title"};
     }
 
-    $result .= "$attributes>$link_text</a>";
+    #$result .= "$attributes>$link_text</a>";
+    $result = __podfmt(L => ($url . ($title ? "|$title" : "")));
 
     return $result;
 }
@@ -872,6 +866,8 @@ sub _GenerateImage {
     }
     $result .= $attributes . $self->{empty_element_suffix};
 
+    $result = "\n\n=begin HTML\n\n$result\n\n=end HTML\n\n";
+
     return $result;
 }
 
@@ -920,7 +916,8 @@ sub _DoHeaders {
 sub _GenerateHeader {
     my ($self, $level, $id) = @_;
 
-    return "<h$level>"  .  $self->_RunSpanGamut($id)  .  "</h$level>\n\n";
+    #return "<h$level>"  .  $self->_RunSpanGamut($id)  .  "</h$level>\n\n";
+    return "=head$level "  .  $self->_RunSpanGamut($id)  .  "\n\n";
 }
 
 sub _DoLists {
@@ -1022,10 +1019,12 @@ sub _MakeList {
 
   if ($list_type eq 'ol' and $self->{trust_list_start_value}) {
     my ($num) = $marker =~ /^(\d+)[.]/;
-    return "<ol start='$num'>\n" . $content . "</ol>\n";
+    #return "<ol start='$num'>\n" . $content . "</ol>\n";
+    return "=over\n\n" . $content . "=back\n\n";
   }
 
-  return "<$list_type>\n" . $content . "</$list_type>\n";
+  #return "<$list_type>\n" . $content . "</$list_type>\n";
+  return "=over\n\n" . $content . "=back\n\n";
 }
 
 sub _ProcessListItemsOL {
@@ -1064,6 +1063,8 @@ sub _ProcessListItemsOL {
     $list_str =~ s/\n{2,}\z/\n/;
 
 
+    my $i = 0;
+
     $list_str =~ s{
         (\n)?                           # leading line = $1
         (^[ \t]*)                       # leading whitespace = $2
@@ -1086,7 +1087,8 @@ sub _ProcessListItemsOL {
             $item = $self->_RunSpanGamut($item);
         }
 
-        "<li>" . $item . "</li>\n";
+        #"<li>" . $item . "</li>\n";
+        $i++; "=item $i. " . $item . "\n\n";
     }egmxo;
 
     $self->{_list_level}--;
@@ -1151,7 +1153,8 @@ sub _ProcessListItemsUL {
             $item = $self->_RunSpanGamut($item);
         }
 
-        "<li>" . $item . "</li>\n";
+        #"<li>" . $item . "</li>\n";
+        "=item * " . $item . "\n\n";
     }egmxo;
 
     $self->{_list_level}--;
@@ -1187,7 +1190,10 @@ sub _DoCodeBlocks {
         $codeblock =~ s/\A\n+//;  # trim leading newlines
         $codeblock =~ s/\n+\z//;  # trim trailing newlines
 
-        $result = "\n\n<pre><code>" . $codeblock . "\n</code></pre>\n\n";
+        #$result = "\n\n<pre><code>" . $codeblock . "\n</code></pre>\n\n";
+        $codeblock =~ s/^/ /mg;
+
+        $result = "\n\n" . $codeblock . "\n\n";
 
         $result;
     }egmx;
@@ -1235,7 +1241,8 @@ sub _DoCodeSpans {
              $c =~ s/^[ \t]*//g; # leading whitespace
              $c =~ s/[ \t]*$//g; # trailing whitespace
              $c = $self->_EncodeCode($c);
-            "<code>$c</code>";
+             #"<code>$c</code>";
+             __podfmt(C => $c);
         @egsx;
 
     return $text;
@@ -1280,29 +1287,44 @@ sub _EncodeCode {
     return $_;
 }
 
+sub __podfmt {
+    my ($fmt, $content) = @_;
+    if ($content =~ /[<>]/) {
+        "$fmt<< $content >>";
+    } else {
+        "$fmt<$content>";
+    }
+}
+
 sub _DoItalicsAndBold {
     my ($self, $text) = @_;
 
     # Handle at beginning of lines:
     $text =~ s{ ^(\*\*|__) (?=\S) (.+?[*_]*) (?<=\S) \1 }
-        {<strong>$2</strong>}gsx;
+        #{<strong>$2</strong>}gsx;
+        {__podfmt(B => $2)}gsex;
 
     $text =~ s{ ^(\*|_) (?=\S) (.+?) (?<=\S) \1 }
-        {<em>$2</em>}gsx;
+        #{<em>$2</em>}gsx;
+        {__podfmt(I => $2)}gsex;
 
     # <strong> must go first:
     $text =~ s{ (?<=\W) (\*\*|__) (?=\S) (.+?[*_]*) (?<=\S) \1 }
-        {<strong>$2</strong>}gsx;
+        #{<strong>$2</strong>}gsx;
+        {__podfmt(B => $2)}gsex;
 
     $text =~ s{ (?<=\W) (\*|_) (?=\S) (.+?) (?<=\S) \1 }
-        {<em>$2</em>}gsx;
+        #{<em>$2</em>}gsx;
+        {__podfmt(I => $2)}gsex;
 
     # And now, a second pass to catch nested strong and emphasis special cases
     $text =~ s{ (?<=\W) (\*\*|__) (?=\S) (.+?[*_]*) (?<=\S) \1 }
-        {<strong>$2</strong>}gsx;
+        #{<strong>$2</strong>}gsx;
+        {__podfmt(B => $2)}gsex;
 
     $text =~ s{ (?<=\W) (\*|_) (?=\S) (.+?) (?<=\S) \1 }
-        {<em>$2</em>}gsx;
+        #{<em>$2</em>}gsx;
+        {__podfmt(I => $2)}gsex;
 
     return $text;
 }
@@ -1321,21 +1343,23 @@ sub _DoBlockQuotes {
           )
         }{
             my $bq = $1;
-            $bq =~ s/^[ \t]*>[ \t]?//gm;    # trim one level of quoting
-            $bq =~ s/^[ \t]+$//mg;          # trim whitespace-only lines
-            $bq = $self->_RunBlockGamut($bq, {wrap_in_p_tags => 1});      # recurse
+            $bq =~ s/^([ \t]*>)/ $1/gm;
+            $bq;
+            #$bq =~ s/^[ \t]*>[ \t]?//gm;    # trim one level of quoting
+            #$bq =~ s/^[ \t]+$//mg;          # trim whitespace-only lines
+            #$bq = $self->_RunBlockGamut($bq, {wrap_in_p_tags => 1});      # recurse
 
-            $bq =~ s/^/  /mg;
-            # These leading spaces screw with <pre> content, so we need to fix that:
-            $bq =~ s{
-                    (\s*<pre>.+?</pre>)
-                }{
-                    my $pre = $1;
-                    $pre =~ s/^  //mg;
-                    $pre;
-                }egsx;
-
-            "<blockquote>\n$bq\n</blockquote>\n\n";
+            #$bq =~ s/^/  /mg;
+            ## These leading spaces screw with <pre> content, so we need to fix that:
+            #$bq =~ s{
+            #        (\s*<pre>.+?</pre>)
+            #    }{
+            #        my $pre = $1;
+            #        #$pre =~ s/^  //mg;
+            #        $pre;
+            #    }egsx;
+            #
+            #"<blockquote>\n$bq\n</blockquote>\n\n";
         }egmx;
 
 
@@ -1361,10 +1385,10 @@ sub _FormParagraphs {
     foreach (@grafs) {
         unless (defined( $self->{_html_blocks}{$_} )) {
             $_ = $self->_RunSpanGamut($_);
-            if ($options->{wrap_in_p_tags}) {
-                s/^([ \t]*)/<p>/;
-                $_ .= "</p>";
-            }
+            #if ($options->{wrap_in_p_tags}) {
+            #    s/^([ \t]*)<p>//;
+            #    $_ .= "</p>";
+            #}
         }
     }
 
@@ -1444,7 +1468,8 @@ sub _EncodeBackslashEscapes {
 sub _DoAutoLinks {
     my ($self, $text) = @_;
 
-    $text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
+    #$text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
+    #$text =~ s{<((https?|ftp):[^'">\s]+)>}{__podfmt(L => $1)}egi;
 
     # Email addresses: <address@domain.foo>
     $text =~ s{
@@ -1646,20 +1671,11 @@ Direct(ish) port of Markdown.pl to JavaScript
 
 =back
 
-=head1 BUGS
-
-To file bug reports or feature requests please send email to:
-
-    bug-Text-Markdown@rt.cpan.org
-
-Please include with your report: (1) the example input; (2) the output
-you expected; (3) the output Markdown actually produced.
-
 =head1 VERSION HISTORY
 
 See the Changes file for detailed release notes for this version.
 
-=head1 AUTHOR
+=head1 ORIGINAL AUTHOR
 
     John Gruber
     http://daringfireball.net/
@@ -1672,7 +1688,7 @@ See the Changes file for detailed release notes for this version.
 
     CPAN Module Text::MultiMarkdown (based on Text::Markdown by Sebastian
     Riedel) originally by Darren Kulp (http://kulp.ch/)
-    
+
     Support for markdown="1" by Dan Dascalescu (http://dandascalescu.com)
 
     This module is maintained by: Tomas Doran http://www.bobtfish.net/
@@ -1696,7 +1712,7 @@ daringfireball. If you want additional features, you should look at L<Text::Mult
 You can find the source code repository for L<Text::Markdown> and L<Text::MultiMarkdown>
 on GitHub at <http://github.com/bobtfish/text-markdown>.
 
-=head1 COPYRIGHT AND LICENSE
+=head1 ORIGINAL COPYRIGHT AND LICENSE
 
 Original Code Copyright (c) 2003-2004 John Gruber
 <http://daringfireball.net/>
