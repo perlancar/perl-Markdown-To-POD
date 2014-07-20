@@ -4,7 +4,7 @@ package Markdown::To::POD;
 # VERSION
 # ABSTRACT: Convert Markdown syntax to POD
 
-use 5.010;
+use 5.010001;
 use strict;
 use warnings;
 use re 'eval';
