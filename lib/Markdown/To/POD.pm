@@ -28,7 +28,7 @@ Currently it's implemented as a quick-and-dirty hack of forking
 L<Text::Markdown> 1.000031 then modifying just enough to produce POD instead of
 HTML. I hacked it because I want an alternative to L<Markdown::Pod> 0.005 which
 is too startup-heavy and has a couple of annoying bugs, like converting
-C<an_identifier and another_identifier> to C<< anE<lt>identifier and
+C<an_identifier and another_identifier> to C<< anIE<lt>identifier and
 anotherE<gt>identifier >>. The rest of the documentation is Text::Markdown's.
 
 Markdown is a text-to-HTML filter; it translates an easy-to-read /
