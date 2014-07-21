@@ -14,12 +14,12 @@ use Encode      qw();
 use Carp        qw(croak);
 use base        'Exporter';
 
-our @EXPORT_OK = qw(markdown);
+our @EXPORT_OK = qw(markdown_to_pod);
 
 =head1 SYNOPSIS
 
-    use Markdown::To::POD 'markdown';
-    my $pod = markdown($text);
+    use Markdown::To::POD 'markdown_to_pod';
+    my $pod = markdown_to_pod($text);
 
 =head1 DESCRIPTION
 
@@ -165,14 +165,14 @@ sub new {
     return $self;
 }
 
-=head2 markdown
+=head2 markdown_to_pod
 
 The main function as far as the outside world is concerned. See the SYNOPSIS
 for details on use.
 
 =cut
 
-sub markdown {
+sub markdown_to_pod {
     my ( $self, $text, $options ) = @_;
 
     # Detect functional mode, and create an instance for this run
@@ -180,7 +180,7 @@ sub markdown {
         if ( $self ne __PACKAGE__ ) {
             my $ob = __PACKAGE__->new();
                                 # $self is text, $text is options
-            return $ob->markdown($self, $text);
+            return $ob->markdown_to_pod($self, $text);
         }
         else {
             croak('Calling ' . $self . '->markdown (as a class method) is not supported.');
