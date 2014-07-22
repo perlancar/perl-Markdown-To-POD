@@ -1259,21 +1259,22 @@ sub _EncodeCode {
 
     # Encode all ampersands; HTML entities are not
     # entities within a Markdown code span.
-    s/&/&amp;/g;
+    #s/&/&amp;/g;
 
     # Encode $'s, but only if we're running under Blosxom.
     # (Blosxom interpolates Perl variables in article bodies.)
     {
         no warnings 'once';
         if (defined($blosxom::version)) {
-            s/\$/&#036;/g;
+            #s/\$/&#036;/g;
         }
     }
 
 
     # Do the angle bracket song and dance:
-    s! <  !&lt;!gx;
-    s! >  !&gt;!gx;
+    #s! <  !&lt;!gx;
+    #s! >  !&gt;!gx;
+    s! ([<>])  !$1 eq '<' ? 'E<lt>' : 'E<gt>'!egx;
 
     # Now, escape characters that are magic in Markdown:
     s! \* !$g_escape_table{'*'}!ogx;
@@ -1409,6 +1410,8 @@ sub _EncodeAmpsAndAngles {
 
     my ($self, $text) = @_;
     return '' if (!defined $text or !length $text);
+
+    return $text;
 
     # Ampersand-encoding based entirely on Nat Irons's Amputator MT plugin:
     #   http://bumppo.net/projects/amputator/
