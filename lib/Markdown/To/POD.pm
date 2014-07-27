@@ -1185,7 +1185,7 @@ sub _DoCodeBlocks {
         my $codeblock = $1;
         my $result;  # return value
 
-        $codeblock = $self->_EncodeCode($self->_Outdent($codeblock));
+        $codeblock = $self->_EncodeCode($self->_Outdent($codeblock), 0);
         $codeblock = $self->_Detab($codeblock);
         $codeblock =~ s/\A\n+//;  # trim leading newlines
         $codeblock =~ s/\n+\z//;  # trim trailing newlines
@@ -1256,6 +1256,7 @@ sub _EncodeCode {
 #
     my $self = shift;
     local $_ = shift;
+    my $do_angle_bracket = shift // 1;
 
     # Encode all ampersands; HTML entities are not
     # entities within a Markdown code span.
@@ -1274,7 +1275,7 @@ sub _EncodeCode {
     # Do the angle bracket song and dance:
     #s! <  !&lt;!gx;
     #s! >  !&gt;!gx;
-    s! ([<>])  !$1 eq '<' ? 'E<lt>' : 'E<gt>'!egx;
+    s! ([<>])  !$1 eq '<' ? 'E<lt>' : 'E<gt>'!egx if $do_angle_bracket;
 
     # Now, escape characters that are magic in Markdown:
     s! \* !$g_escape_table{'*'}!ogx;
