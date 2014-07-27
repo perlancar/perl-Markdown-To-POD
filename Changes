@@ -1,5 +1,11 @@
 Revision history for Markdown-To-POD
 
+0.04    2014-07-27 (SHARYANTO)
+
+        - [Bugfix] Don't escape < and > to E<lt> and E<gt> in code blocks (POD
+          verbatim).
+
+
 0.03    2014-07-22 (SHARYANTO)
 
         - [Bugfix] Disable HTML entities escaping for <, >, &. Enable escaping <
