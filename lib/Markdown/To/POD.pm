@@ -1472,9 +1472,6 @@ sub _EncodeBackslashEscapes {
 sub _DoAutoLinks {
     my ($self, $text) = @_;
 
-    #$text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
-    #$text =~ s{<((https?|ftp):[^'">\s]+)>}{__podfmt(L => $1)}egi;
-
     # Email addresses: <address@domain.foo>
     $text =~ s{
         <
@@ -1488,6 +1485,9 @@ sub _DoAutoLinks {
     }{
         $self->_EncodeEmailAddress( $self->_UnescapeSpecialChars($1) );
     }egix;
+
+    #$text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
+    $text =~ s{<((https?|ftp):[^'">\s]+)>}{__podfmt(L => $1)}egi;
 
     return $text;
 }
