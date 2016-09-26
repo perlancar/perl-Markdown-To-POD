@@ -1493,7 +1493,7 @@ sub _DoAutoLinks {
     # pm: and prog:
     $text =~ s{
         <
-        (?:(?:pm|prog):(?://?)?)?
+        (?:pm|prog):(?://?)?
         (
             [\w-]+(?:::[\w-]+)*
         )
