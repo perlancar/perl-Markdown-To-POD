@@ -1,5 +1,13 @@
 Revision history for Markdown-To-POD
 
+0.05    2016-09-26 (PERLANCAR)
+
+	- Replace autolinks <pm:Foo::Bar> with L<Foo::Bar>, <prog:cpanm> with
+	  L<cpanm>, and L<http://foo> with L<http://foo>.
+
+	- [Bugfix] Fix encoding email address.
+
+
 0.04    2014-07-27 (SHARYANTO)
 
         - [Bugfix] Don't escape < and > to E<lt> and E<gt> in code blocks (POD
