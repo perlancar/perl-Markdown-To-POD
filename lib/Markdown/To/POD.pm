@@ -1483,7 +1483,8 @@ sub _DoAutoLinks {
         )
         >
     }{
-        $self->_EncodeEmailAddress( $self->_UnescapeSpecialChars($1) );
+        #$self->_EncodeEmailAddress( $self->_UnescapeSpecialChars($1) );
+        __podfmt(L => "mailto:$1");
     }egix;
 
     #$text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
