@@ -1490,6 +1490,18 @@ sub _DoAutoLinks {
     #$text =~ s{<((https?|ftp):[^'">\s]+)>}{<a href="$1">$1</a>}gi;
     $text =~ s{<((https?|ftp):[^'">\s]+)>}{__podfmt(L => $1)}egi;
 
+    # pm: and prog:
+    $text =~ s{
+        <
+        (?:(?:pm|prog):(?://?)?)?
+        (
+            [\w-]+(?:::[\w-]+)*
+        )
+        >
+    }{
+        __podfmt(L => $1);
+    }egix;
+
     return $text;
 }
 
