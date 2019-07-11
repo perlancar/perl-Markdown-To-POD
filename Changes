@@ -1,10 +1,10 @@
-0.06    2016-09-27 (PERLANCAR)
+0.06    2016-09-27  Released-By: PERLANCAR
 
 	- Aside from pm:, also replace autolink with pod: scheme with
 	  L<...>.
 
 
-0.05    2016-09-26 (PERLANCAR)
+0.05    2016-09-26  Released-By: PERLANCAR
 
 	- Replace autolinks <pm:Foo::Bar> with L<Foo::Bar>, <prog:cpanm> with
 	  L<cpanm>, and <http://foo> with L<http://foo>.
@@ -12,19 +12,19 @@
 	- [Bugfix] Fix encoding email address.
 
 
-0.04    2014-07-27 (SHARYANTO)
+0.04    2014-07-27  Released-By: SHARYANTO
 
         - [Bugfix] Don't escape < and > to E<lt> and E<gt> in code blocks (POD
           verbatim).
 
 
-0.03    2014-07-22 (SHARYANTO)
+0.03    2014-07-22  Released-By: SHARYANTO
 
         - [Bugfix] Disable HTML entities escaping for <, >, &. Enable escaping <
           to E<lt> & > to E<gt>.
 
 
-0.02    2014-07-21 (SHARYANTO)
+0.02    2014-07-21  Released-By: SHARYANTO
 
         - Add a basic test.
 
@@ -33,6 +33,6 @@
         - Change function name markdown() to markdown_to_pod().
 
 
-0.01    2014-07-20 (SHARYANTO)
+0.01    2014-07-20  Released-By: SHARYANTO
 
         - First release.
